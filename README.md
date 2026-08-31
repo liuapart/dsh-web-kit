@@ -1,16 +1,21 @@
 # @apanoo/dsh-web-kit
 
 dsh Web 界面增强套件（自包含的双面插件：服务端 host plugin + 浏览器 client module）。
-零依赖纯 JS，无需打包器。
+零 npm 依赖：源码分模块放在 `src/`（CommonJS），由自研打包器 `scripts/bundle.mjs`
+生成单文件构建物 `lib/`。
 
 ## 功能
 
-### 一、文件预览停靠栏
-- 点击聊天消息里的文件路径 → 右侧停靠栏内查看，不再跳系统原生打开
+### 一、文件预览停靠栏（双入口）
+- **入口 A · 精确直达**：点击聊天消息里的文件路径 → 右侧停靠栏内查看，
+  不再跳系统原生打开
+- **入口 B · 主动浏览**（v2.1）：点右缘把手「预览」→ 从 dsh 工作区根开始
+  浏览文件树，选文件即预览；面包屑任意层可点跳回；位置记忆（localStorage
+  记住上次浏览处，重开面板回到原处，失效自动回退工作区列表）
 - 轻量语法高亮（js/ts、json、py、sh、C 系、css、yaml），零依赖
 - 目录可下钻浏览（目录优先排序，自动隐藏 `.git` / `node_modules` / `.DS_Store`）
 - 交互：左缘拖拽调宽（320–760px，持久化）、Esc / 点外部 / « 按钮收起；
-  收起后内容与宽度保留，右缘竖排把手「文件预览 ›」随时再展开
+  收起后内容与宽度保留，把手随时再展开
 - 渐进增强：二进制 / 超大 / 不可读等无法页内查看的路径，自动回退官方
   `openPath` 原生行为（本机原生打开 / 远端 403），不做破坏性接管
 
@@ -19,22 +24,45 @@ dsh Web 界面增强套件（自包含的双面插件：服务端 host plugin + 
 - 左缘贴边细把手「›」（12px 宽、半透明、悬停显形）转发官方 toggle 开合侧栏
 - PC 端（≥1024px）完全不受影响
 
-## 目录结构
+## 目录结构（源码与构建物分离）
 
 ```
-├── package.json        # 双面插件声明：exports[./client] + dsh.client.platform=web
-├── lib/
-│   ├── index.js        # 服务端半部：/web-kit 路由（信任围栏/目录/文件读取）
-│   └── client.js       # 浏览器半部：停靠栏 + 语法高亮 + 侧栏管理（分节注释）
+├── package.json          # 双面插件声明：exports[./client] + dsh.client.platform=web
+├── src/                  # ★ 源码（CommonJS，编辑只改这里）
+│   ├── package.json      # {"type":"commonjs"}：让编辑器按 CJS 解析 src
+│   ├── server/           # 服务端半部（entry: index.js）
+│   │   ├── fence.js      #   信任围栏（回环/私网字面量/部署域名白名单）
+│   │   ├── reply.js      #   统一 JSON 响应
+│   │   ├── listing.js    #   目录列表（排序/噪音过滤/500 条上限）
+│   │   ├── readfile.js   #   文件读取（二进制嗅探/1MB 截断）
+│   │   ├── workspace.js  #   工作区根列表（宽容解析 workspace.json）
+│   │   └── index.js      #   路由分发：无 path→roots；有 path→目录/文件
+│   └── client/           # 浏览器半部（entry: index.js）
+│       ├── styles.js     #   全部 CSS（亮/暗主题）
+│       ├── util.js       #   fmtSize / basename / parentPath
+│       ├── highlight.js  #   轻量语法高亮（零依赖）
+│       ├── dock.js       #   停靠栏壳：DOM/开合/拖宽/把手/外点收起
+│       ├── browser.js    #   数据加载+渲染：loadPath/roots/面包屑/位置记忆
+│       ├── openpath.js   #   openPath 拦截（渐进增强回退）
+│       └── index.js      #   入口：apply(ctx)
+├── lib/                  # ★ 构建物（bundle.mjs 生成，勿手改）
+│   ├── index.js          #   ESM（dsh 以 ES module 加载服务端半部）
+│   └── client.js         #   __ModuleLoader__.load 包装的浏览器模块
 └── scripts/
-    └── build.mjs       # 构建 = 语法校验 + 原样部署到 dsh profile
+    ├── bundle.mjs        # 零依赖打包器：CJS 注册表 + 微型 require
+    └── build.mjs         # 打包 → 语法校验 → 部署到 dsh profile
 ```
+
+### 打包器约定（违反会在构建期报错）
+
+- 源码只允许相对 `require("./x.js")`（显式 `.js` 后缀）
+- node 内建只允许 `require("node:xxx")`，服务端产物会提升为顶部 `import`
+- 禁止循环依赖（构建期 DFS 检测）
 
 ## 构建与部署
 
 ```bash
-npm run lint            # 只做语法校验
-npm run build           # 校验 + 部署到 ~/.dsh/profiles/web
+npm run build           # 打包 + 校验 + 部署到 ~/.dsh/profiles/web
 DSH_PROFILE_DIR=/path/to/profile npm run build   # 指定其他 profile
 ```
 
@@ -51,10 +79,14 @@ launchctl kickstart -k gui/501/com.dsh.web
 
 ## 安全模型（服务端 /web-kit 路由）
 
-- 仅 GET；`sec-fetch-site: cross-site`、Origin 与 Host 不一致、Host 非回环/私网
-  字面量 → 一律 403（语义对齐 `dsh-client-connection` 的 `isTrustedApiRequest`）
+- 仅 GET；`sec-fetch-site: cross-site`、Origin 与 Host 不一致、Host 非回环/
+  私网字面量/部署域名白名单 → 一律 403（语义对齐 `dsh-client-connection`
+  的 `isTrustedApiRequest`；域名白名单的安全依据：请求必经 Caddy 白名单 +
+  basic_auth，3080 只绑回环）
 - 允许任意可读路径是有意取舍：LAN 用户已过 Caddy basic auth，文件可见面与
   SSH 登录本机一致；权限最终由文件系统裁决
+- 工作区根列表（无 path 请求）宽容解析 `~/.dsh/storages/workspace.json`：
+  注册表缺失/格式变化/条目失效 → 空数组，绝不让主路由 500
 - 限额：二进制嗅探（头 8KB 含 NUL → 415）、读取 1MB 截断、stat 64MB 上限、
   目录 500 条截断；`realpath` 解析符号链接
 
@@ -66,6 +98,8 @@ launchctl kickstart -k gui/501/com.dsh.web
 - 官方收起细条的 56px 是 `computeColumns` 写进内联 grid 模板的，CSS 必须
   `!important` 才能覆盖回收
 - CSS Modules 类名用 `[class*="_toggle"]` 后缀匹配（哈希前缀跨构建会变）
+- [状态栏颜色] 不要自写 theme-color 同步：官方 ThemePresenter 已管理
+  （浏览器下两主题均正常；PWA 启动色实验在用户设备无效，2026-08-31 已还原）
 
 ## 卸载
 
