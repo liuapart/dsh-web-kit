@@ -1,0 +1,21 @@
+{
+  "name": "@apanoo/dsh-web-kit",
+  "description": "Web UI enhancement kit for dsh: in-page file preview dock with syntax highlighting, and small-screen sidebar management (auto-collapse + edge-tab opener)",
+  "version": "2.0.0",
+  "type": "module",
+  "main": "lib/index.js",
+  "scripts": {
+    "lint": "node --check lib/index.js && node --check lib/client.js",
+    "build": "node scripts/build.mjs"
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web"
+    }
+  }
+}
