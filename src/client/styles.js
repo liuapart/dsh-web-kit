@@ -48,6 +48,11 @@ function ensureStyles() {
 		".dsh-wk-ico{width:14px;flex:none;color:#bf8700}",
 		".dsh-wk-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:ui-monospace,'SF Mono',Menlo,monospace}",
 		".dsh-wk-size{flex:none;color:#57606a;font-size:11.5px}",
+		// ---- Session log 按钮 · 窄屏紧凑（v2.2.0 自安卓壳迁入）：≤620px 只留下载图标并收缩钉右。
+		//      官方按钮列宽由父布局分配且自带 min-width:111px，藏文字不会缩，需覆盖盒子；
+		//      媒体查询驱动，转屏/拉宽自适应；无新增颜色，双主题天然适配 ----
+		"@media (max-width:620px){.dsh-wk-slog{width:auto!important;min-width:0!important;flex:0 0 auto!important;padding:6px 12px!important;margin-left:auto!important}}",
+		"@media (max-width:620px){.dsh-wk-slog span{display:none!important}}",
 		// ---- 面包屑（P0 浏览导航）：路径分段可点，点任意段跳回该层 ----
 		// 外层固定层：只有它带 padding/背景/下边线；内层 row 不再复用同名类
 		//（曾因嵌套同 class 导致双重 border-bottom，文字下多出一条线）

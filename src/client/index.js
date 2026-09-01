@@ -10,6 +10,7 @@
 const { ensureDock, setOpenHook } = require("./dock.js");
 const { installOpenPath } = require("./openpath.js");
 const { openBrowse, tryView, ensureRoots } = require("./browser.js");
+const { installSessionLog } = require("./sessionlog.js");
 
 function apply(ctx) {
 	var ws = ctx.get("workspaces");
@@ -20,6 +21,8 @@ function apply(ctx) {
 	ensureDock();
 	// 预热工作区根缓存：首次点链接时面包屑首段就能显示工作区名（fire-and-forget）
 	ensureRoots();
+	// Session log 按钮 · 窄屏紧凑化（官方按钮打标记类，样式见 styles.js 媒体查询）
+	installSessionLog();
 }
 
 module.exports = { name: "web-kit", inject: ["workspaces"], apply: apply };
