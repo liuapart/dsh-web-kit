@@ -74,8 +74,9 @@ function renderStatus(text) {
  * - 任意段可点跳回该层；末段高亮不可点；roots 视图不显示面包屑
  */
 function renderCrumbs(path) {
+	// 独立 row 类：不带边框/背景（外层固定层 .dsh-wk-crumbs 负责），避免双重下边线
 	var bar = document.createElement("div");
-	bar.className = "dsh-wk-crumbs";
+	bar.className = "dsh-wk-crumbs-row";
 	function add(label, target, isHere, title) {
 		if (bar.childNodes.length > 0) {
 			var sep = document.createElement("span");
@@ -132,7 +133,11 @@ function render(path, data) {
 		up.className = "dsh-wk-btn";
 		up.setAttribute("aria-label", "上一级");
 		up.title = "上一级";
-		up.textContent = "↑";
+		// ‹ 与收起按钮「»」同属引号系符号（返回语义）；字号 18px 做视觉补偿
+		//（‹ 字形偏小，15px 默认值显得单薄，2026-08-31 替换原 ↑ 箭头）
+		up.textContent = "‹";
+		up.style.fontSize = "18px";
+		up.style.fontWeight = "600";
 		up.addEventListener("click", function () { loadPath(parentPath(path)).catch(function () { }); });
 		headEl().appendChild(up);
 	}
@@ -168,17 +173,32 @@ function render(path, data) {
 	crumbs.textContent = "";
 	crumbs.style.display = !isRoots ? "" : "none";
 	if (!isRoots) {
-		crumbs.appendChild(renderCrumbs(path));
-		crumbs.scrollLeft = crumbs.scrollWidth; // 锚定末尾：当前文件恒可见（不用手动往右翻）
+		var bar = renderCrumbs(path);
+		crumbs.appendChild(bar);
+		bar.scrollLeft = bar.scrollWidth; // 锚定末尾：当前文件恒可见（不用手动往右翻）
 	}
 	if (!isRoots && data.kind === "file") {
-		// —— 文件：有语言 → innerHTML 注入高亮 span；否则纯文本（textContent 防注入） ——
+		// —— 文件：双栏行号（ln 列 sticky 钉左）+ 代码列；同字体同行高行行对齐 ——
+		var lines = data.content.split("\n");
+		if (lines.length > 1 && lines[lines.length - 1] === "") lines.pop(); // 尾换行不占行号
+		var ln = document.createElement("pre");
+		ln.className = "dsh-wk-ln";
+		var nums = new Array(lines.length);
+		for (var n = 0; n < lines.length; n++) nums[n] = n + 1;
+		ln.textContent = nums.join("\n");
 		var pre = document.createElement("pre");
 		pre.className = "dsh-wk-pre";
 		var lang = langOf(path);
 		if (lang !== null) pre.innerHTML = tokenize(data.content, lang);
 		else pre.textContent = data.content;
-		body.appendChild(pre);
+		var inner = document.createElement("div");
+		inner.className = "dsh-wk-codeinner";
+		inner.appendChild(ln);
+		inner.appendChild(pre);
+		var wrap = document.createElement("div");
+		wrap.className = "dsh-wk-codewrap";
+		wrap.appendChild(inner);
+		body.appendChild(wrap);
 		return;
 	}
 	// —— 目录 / 工作区根：行点击下钻或选工作区（面包屑已在上方固定层） ——

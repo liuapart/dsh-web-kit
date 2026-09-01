@@ -30,9 +30,14 @@ function ensureStyles() {
 		// ---- 左缘拖拽调宽热区 ----
 		".dsh-wk-resize{position:absolute;left:0;top:0;bottom:0;width:6px;cursor:col-resize;flex:none}",
 		".dsh-wk-resize:hover{background:rgba(9,105,218,.3)}",
-		// ---- 内容区：pre 代码块 / 状态提示 / 目录列表 / 面包屑 ----
+		// ---- 内容区：pre 代码块（双栏行号）/ 状态提示 / 目录列表 / 面包屑 ----
 		".dsh-wk-body{flex:1;min-height:0;overflow:auto;margin:0}",
-		".dsh-wk-pre{margin:0;padding:12px 14px;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:12.5px;line-height:1.6;color:#1f2328;white-space:pre;tab-size:4}",
+		// 行号双栏：codewrap 是唯一滚动容器；行号列 sticky 钉左（横向滚动不动），
+		// 两列同字体同行高保证行行对齐；代码列恢复可选中（复制需求，覆盖 dock 禁选）
+		".dsh-wk-codewrap{flex:1;min-height:0;height:100%;overflow:auto}",
+		".dsh-wk-codeinner{display:flex;align-items:flex-start;width:max-content;min-width:100%}",
+		".dsh-wk-ln{margin:0;padding:12px 0 12px 12px;min-width:3.5ch;text-align:right;color:#6e7781;background:#f6f8fa;position:sticky;left:0;z-index:1;flex:none;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:12.5px;line-height:1.6;white-space:pre;user-select:none;-webkit-user-select:none}",
+		".dsh-wk-pre{margin:0;padding:12px 14px;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:12.5px;line-height:1.6;color:#1f2328;white-space:pre;tab-size:4;flex:none;user-select:text;-webkit-user-select:text}",
 		".hl-cm{color:#6e7781;font-style:italic}.hl-st{color:#0a3069}.hl-key{color:#116329}.hl-kw{color:#cf222e}.hl-nu{color:#0550ae}.hl-fn{color:#8250df}",
 		".dsh-wk-status{padding:28px;text-align:center;color:#57606a;font-size:13px}",
 		".dsh-wk-hint{padding:36px 28px;text-align:center;color:#57606a;font-size:13px;line-height:2}",
@@ -44,10 +49,13 @@ function ensureStyles() {
 		".dsh-wk-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:ui-monospace,'SF Mono',Menlo,monospace}",
 		".dsh-wk-size{flex:none;color:#57606a;font-size:11.5px}",
 		// ---- 面包屑（P0 浏览导航）：路径分段可点，点任意段跳回该层 ----
-		".dsh-wk-crumbs{display:flex;align-items:center;gap:2px;padding:6px 12px;border-bottom:1px solid #d8dee4;flex:none;overflow-x:auto;white-space:nowrap;font-size:11.5px;background:#fbfcfd;scrollbar-width:none}",
-		".dsh-wk-crumbs::-webkit-scrollbar{display:none}",
+		// 外层固定层：只有它带 padding/背景/下边线；内层 row 不再复用同名类
+		//（曾因嵌套同 class 导致双重 border-bottom，文字下多出一条线）
+		".dsh-wk-crumbs{display:flex;align-items:center;padding:9px 12px;border-bottom:1px solid #d8dee4;flex:none;font-size:11.5px;background:#fbfcfd;white-space:nowrap}",
+		".dsh-wk-crumbs-row{display:flex;align-items:center;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}",
+		".dsh-wk-crumbs-row::-webkit-scrollbar{display:none}",
 		".dsh-wk-crumb{cursor:pointer;color:#0969da;padding:2px 4px;border-radius:4px;flex:none;font-family:ui-monospace,'SF Mono',Menlo,monospace}",
-		".dsh-wk-crumb:hover{background:rgba(9,105,218,.12);text-decoration:underline}",
+		".dsh-wk-crumb:hover{background:rgba(9,105,218,.12)}",
 		".dsh-wk-crumb-here{color:#57606a;padding:2px 4px;flex:none;font-weight:600;font-family:ui-monospace,'SF Mono',Menlo,monospace}",
 		".dsh-wk-crumb-sep{color:#d8dee4;flex:none}",
 		// ---- 小屏侧栏贴边把手：12×64 细条，平时半透明，悬停显形 ----
@@ -77,6 +85,7 @@ function ensureStyles() {
 		"body[data-ds-dark-theme] .dsh-wk-btn:hover{background:rgba(110,118,129,.3)}",
 		"body[data-ds-dark-theme] .dsh-wk-resize:hover{background:rgba(56,139,253,.35)}",
 		"body[data-ds-dark-theme] .dsh-wk-pre{color:#c9d1d9}",
+		"body[data-ds-dark-theme] .dsh-wk-ln{background:#161b22;color:#8b949e}",
 		"body[data-ds-dark-theme] .hl-cm{color:#8b949e}body[data-ds-dark-theme] .hl-st{color:#a5d6ff}body[data-ds-dark-theme] .hl-key{color:#7ee787}body[data-ds-dark-theme] .hl-kw{color:#ff7b72}body[data-ds-dark-theme] .hl-nu{color:#79c0ff}body[data-ds-dark-theme] .hl-fn{color:#d2a8ff}",
 		"body[data-ds-dark-theme] .dsh-wk-row:hover{background:rgba(56,139,253,.15)}",
 		"body[data-ds-dark-theme] .dsh-wk-ico{color:#e3b341}"
