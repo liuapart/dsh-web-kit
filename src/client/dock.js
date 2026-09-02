@@ -13,6 +13,8 @@ function setExpanded(on) {
 	expanded = on;
 	if (dock !== null) dock.classList.toggle("dsh-wk-collapsed", !on);
 	if (scrim !== null) scrim.classList.toggle("dsh-wk-scrim-visible", on);
+	// 直接同步按钮状态，不依赖 dock/handle 的 DOM 兄弟选择器。
+	if (handle !== null) handle.classList.toggle("dsh-wk-handle-hidden", on);
 }
 
 function setOpenHook(fn) {

@@ -21,9 +21,9 @@ function ensureStyles() {
 		// ---- 右缘展开把手：停靠栏展开时自动淡出（兄弟选择器，无需 JS 状态） ----
 		//    2026-08-31 两轮收窄：高(内边距14→8/字号12→11/字距2→1/文案「预览 ›」)
 		//    宽(横向厚度 ~22px→~15px：内边距 4/5→2/2、字号 11→10)
-		"#dsh-wk-handle{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:2147482001;writing-mode:vertical-rl;padding:8px 2px;font-size:10px;letter-spacing:1px;color:#1f2328;background:#f6f8fa;border:1px solid #d8dee4;border-right:none;border-radius:6px 0 0 6px;cursor:pointer;user-select:none;transition:opacity .15s}",
-		"#dsh-wk-handle:hover{background:#eaeef2}",
-		"#dsh-wk-dock:not(.dsh-wk-collapsed) ~ #dsh-wk-handle{opacity:0;pointer-events:none}",
+		"#dsh-wk-handle{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:2147482001;writing-mode:vertical-rl;padding:8px 2px;font-size:10px;letter-spacing:1px;color:#1f2328;background:#f6f8fa;border:1px solid #d8dee4;border-right:none;border-radius:6px 0 0 6px;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;outline:none;transition:opacity .15s}",
+		"@media (hover:hover){#dsh-wk-handle:hover{background:#eaeef2}}",
+		"#dsh-wk-dock:not(.dsh-wk-collapsed) ~ #dsh-wk-handle,#dsh-wk-handle.dsh-wk-handle-hidden{opacity:0;visibility:hidden;pointer-events:none}",
 		// ---- 停靠栏头部：标题(可截断) + 元信息 + 截断徽标 + 收起按钮 ----
 		".dsh-wk-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #d8dee4;flex:none;background:#f6f8fa}",
 		".dsh-wk-title{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1;direction:rtl;text-align:left}",
