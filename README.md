@@ -59,23 +59,36 @@ dsh Web 界面增强套件（自包含的双面插件：服务端 host plugin + 
 - node 内建只允许 `require("node:xxx")`，服务端产物会提升为顶部 `import`
 - 禁止循环依赖（构建期 DFS 检测）
 
-## 构建与部署
+## 构建、部署与安全回滚
 
 ```bash
 npm run build           # 打包 + 校验 + 部署到 ~/.dsh/profiles/web
 DSH_PROFILE_DIR=/path/to/profile npm run build   # 指定其他 profile
 ```
 
-部署后重启 dsh 并刷新浏览器页面：
+不要每次改动都重启 dsh：
+
+- 只改 `src/client/**`：构建后刷新浏览器即可；
+- 改 `src/server/**`、`package.json`、exports、依赖、注入关系或 profile：先做配置检查，再
+  `launchctl kickstart -k gui/501/com.dsh.web`，最后验证聊天和 `/web-kit`；
+- 完整更新/重启/失败恢复规范见
+  [`docs/PLUGIN-UPDATE-RUNBOOK.md`](docs/PLUGIN-UPDATE-RUNBOOK.md)。
+
+安全模式和回滚脚本（首次使用先安装安全 LaunchAgent）：
 
 ```bash
-launchctl kickstart -k gui/501/com.dsh.web
+./scripts/safe-mode.sh install   # 只安装，不切换当前服务
+./scripts/safe-mode.sh enter     # 禁用 web-kit，恢复聊天核心
+./scripts/safe-mode.sh restore   # 恢复正常模式
+./scripts/safe-mode.sh rollback  # 恢复最近一次部署前的 web-kit，再尝试正常模式
+./scripts/safe-mode.sh status
 ```
 
 > 本插件作为组合行挂在 profile 用户层（`~/.dsh/profiles/web/cordis.patch.yml`
 > 的 insert 块，行 id `web-kit`），与 dsh 升级无关；重装系统/重置 profile 后
 > 把本仓库复制回 profile `node_modules/@apanoo/dsh-web-kit` 并补一行
 > `- insert: [- id: web-kit, name: '@apanoo/dsh-web-kit']` 即可恢复。
+> `npm run build` 会在部署前保留最近一版到 `.dsh-web-kit.previous`，供安全回滚使用。
 
 ## 安全模型（服务端 /web-kit 路由）
 

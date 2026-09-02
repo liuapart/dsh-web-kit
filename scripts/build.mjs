@@ -7,8 +7,8 @@
 // 用法：
 //   npm run build          # 打包 + 校验 + 部署到默认 profile（~/.dsh/profiles/web）
 //   DSH_PROFILE_DIR=/path/to/profile npm run build   # 指定其他 profile
-// 部署后需重启 dsh 并刷新浏览器页面才生效：
-//   launchctl kickstart -k gui/501/com.dsh.web
+// 生效规则：只改 client 则刷新浏览器；改 server/profile 才按 docs/runbook 重启 dsh。
+// 部署前会保留上一版，供 scripts/safe-mode.sh rollback 使用。
 // ============================================================================
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, rmSync } from "node:fs";
@@ -20,6 +20,7 @@ import { bundle } from "./bundle.mjs";
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const profileDir = process.env.DSH_PROFILE_DIR ?? join(homedir(), ".dsh/profiles/web");
 const target = join(profileDir, "node_modules/@apanoo/dsh-web-kit");
+const previous = join(profileDir, "node_modules/@apanoo/.dsh-web-kit.previous");
 
 // ① 打包：src/ → lib/（构建物；编辑请改 src/，lib 由打包器生成）
 const client = await bundle({
@@ -57,9 +58,22 @@ if (!existsSync(profileDir)) {
 	process.exit(1);
 }
 
-// ④ 部署：先删后拷（防止改名/删除的文件在目标目录残留旧版本）
-rmSync(target, { recursive: true, force: true });
-cpSync(join(root, "package.json"), join(target, "package.json"));
-cpSync(join(root, "lib"), join(target, "lib"), { recursive: true });
+// ④ 部署：先保留上一版，再先删后拷（防止改名/删除的文件残留）
+//    备份供 scripts/safe-mode.sh rollback 使用；部署失败时立即恢复旧版。
+if (existsSync(target)) {
+	rmSync(previous, { recursive: true, force: true });
+	cpSync(target, previous, { recursive: true });
+	console.log("✓ 已备份上一版:", previous);
+}
+try {
+	rmSync(target, { recursive: true, force: true });
+	cpSync(join(root, "package.json"), join(target, "package.json"));
+	cpSync(join(root, "lib"), join(target, "lib"), { recursive: true });
+} catch (error) {
+	// 复制中途失败也不留下半套插件：恢复上一版，错误继续抛出让调用方感知。
+	rmSync(target, { recursive: true, force: true });
+	if (existsSync(previous)) cpSync(previous, target, { recursive: true });
+	throw error;
+}
 console.log("✓ 已部署到:", target);
-console.log("  生效步骤: launchctl kickstart -k gui/501/com.dsh.web 然后刷新浏览器页面");
+console.log("  纯 client 改动：构建后刷新浏览器即可；server/profile 改动：按 docs/PLUGIN-UPDATE-RUNBOOK.md 操作");

@@ -1,0 +1,5 @@
+# dsh-web-kit 安全模式叠加层
+# 仅通过 dsh --profile web --patch 使用，不修改正常 profile 的 cordis.patch.yml。
+# web-kit 是可选增强插件；禁用后 dsh 核心聊天和其他基础能力仍可启动。
+- id: web-kit
+  disabled: true

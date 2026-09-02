@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  安全模式 LaunchAgent 模板。
+  安装/切换请使用 scripts/safe-mode.sh，不要手工同时加载 normal 与 safe。
+  此文件中的路径对应当前本机仓库位置；若仓库移动，先按脚本说明修改配置。
+-->
+<plist version="1.0">
+<dict>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/Users/apanoo/.npm-global/bin:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>KeepAlive</key>
+  <true/>
+  <key>Label</key>
+  <string>com.dsh.web.safe</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/node</string>
+    <string>/Users/apanoo/.npm-global/lib/node_modules/@deepseek-ai/dsh/lib/bin.js</string>
+    <string>web</string>
+    <string>--patch</string>
+    <string>/Users/apanoo/worsp/codex-workspace/test/dsh-repair/dsh-web-kit/config/safe-mode.patch.yml</string>
+    <string>--no-open</string>
+    <string>--trusted-host</string>
+    <string>192.168.18.200:8443</string>
+    <string>ai.apanoo.cn</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StandardErrorPath</key>
+  <string>/tmp/dsh-web-safe.err.log</string>
+  <key>StandardOutPath</key>
+  <string>/tmp/dsh-web-safe.log</string>
+</dict>
+</plist>
