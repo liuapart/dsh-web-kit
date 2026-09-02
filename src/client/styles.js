@@ -1,4 +1,4 @@
-// 浏览器半部 · 样式注入（一次性；z-index 约定：停靠栏 2147482000 > 把手 2147482001 > 侧栏把手 2147481999）
+// 浏览器半部 · 样式注入（一次性；z-index 约定：预览把手 2147482001 > 停靠栏 2147482000 > 遮罩 2147481998 > 侧栏把手 2147481997）
 // 深色主题用 body[data-ds-dark-theme] 属性选择器：优先级高于官方
 // prefers-color-scheme 规则，不依赖 <style> 书写顺序（曾因层叠顺序翻车）
 var styleTag = null;
@@ -10,7 +10,11 @@ function ensureStyles() {
 		// ---- 交互元素禁选文字：Chrome 安卓的「触摸搜索」会把点按当文字选择，
 		//      弹「点击可查看搜索结果」（2026-08-31 反馈）；代码区 .dsh-wk-pre
 		//      保持可选中（复制需求） ----
-		"#dsh-wk-dock,#dsh-wk-handle,#dsh-wk-side-open,.dsh-wk-crumbs,.dsh-wk-crumb,.dsh-wk-crumb-here,.dsh-wk-row,.dsh-wk-btn,.dsh-wk-badge,.dsh-wk-meta,.dsh-wk-size{user-select:none;-webkit-user-select:none}",
+		"#dsh-wk-dock,#dsh-wk-scrim,#dsh-wk-handle,#dsh-wk-side-open,.dsh-wk-crumbs,.dsh-wk-crumb,.dsh-wk-crumb-here,.dsh-wk-row,.dsh-wk-btn,.dsh-wk-badge,.dsh-wk-meta,.dsh-wk-size{user-select:none;-webkit-user-select:none}",
+		// ---- 展开遮罩：阻断预览框左侧背后内容；点击后由 dock.js 收起面板 ----
+		//      z-index 低于 dock/handle，高于官方聊天内容；隐藏时完全不拦截点击
+		"#dsh-wk-scrim{position:fixed;inset:0;z-index:2147481998;background:rgba(0,0,0,.16);opacity:0;pointer-events:none;transition:opacity .18s ease;outline:none;-webkit-tap-highlight-color:transparent}",
+		"#dsh-wk-scrim.dsh-wk-scrim-visible{opacity:1;pointer-events:auto;cursor:pointer}",
 		// ---- 停靠栏主体：右侧全高，收起 = 平移出屏（保留内容与宽度） ----
 		"#dsh-wk-dock{position:fixed;top:0;right:0;bottom:0;width:460px;max-width:70vw;z-index:2147482000;display:flex;flex-direction:column;background:#ffffff;color:#1f2328;border-left:1px solid #d8dee4;box-shadow:-8px 0 28px rgba(0,0,0,.10);font-family:-apple-system,'SF Pro Text','PingFang SC','Microsoft YaHei',sans-serif;transition:transform .18s ease}",
 		"#dsh-wk-dock.dsh-wk-collapsed{transform:translateX(100%)}",
@@ -64,7 +68,7 @@ function ensureStyles() {
 		".dsh-wk-crumb-here{color:#57606a;padding:2px 4px;flex:none;font-weight:600;font-family:ui-monospace,'SF Mono',Menlo,monospace}",
 		".dsh-wk-crumb-sep{color:#d8dee4;flex:none}",
 		// ---- 小屏侧栏贴边把手：12×64 细条，平时半透明，悬停显形 ----
-		"#dsh-wk-side-open{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:2147481999;width:12px;height:64px;border:none;border-radius:0 8px 8px 0;background:rgba(128,140,160,.26);color:#e8eaf0;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:12px;opacity:.4;transition:opacity .15s;padding:0}",
+		"#dsh-wk-side-open{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:2147481997;width:12px;height:64px;border:none;border-radius:0 8px 8px 0;background:rgba(128,140,160,.26);color:#e8eaf0;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:12px;opacity:.4;transition:opacity .15s;padding:0}",
 		"#dsh-wk-side-open:hover{opacity:1;background:rgba(58,66,82,.85)}",
 		"@media(prefers-color-scheme:light){#dsh-wk-side-open{color:#1f2328;background:rgba(160,174,192,.3);border:1px solid #d8dee4;border-left:none}#dsh-wk-side-open:hover{background:#eaeef2}}",
 		// ---- 小屏（<1024px，与官方 SIDEBAR_AUTO_COLLAPSE 对齐）侧栏管理核心 ----

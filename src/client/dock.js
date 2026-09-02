@@ -3,7 +3,7 @@
 // openHook 由 browser 模块注册 —— 把手点击展开时若面板为空则进入浏览模式。
 const { ensureStyles } = require("./styles.js");
 
-var dock = null, handle = null, headEl = null, bodyEl = null;
+var dock = null, scrim = null, handle = null, headEl = null, bodyEl = null;
 var expanded = false;
 var hasContent = false;
 var openHook = null;
@@ -12,6 +12,7 @@ var WIDTH_KEY = "dsh-wk-width"; // 拖拽宽度持久化（v1 的 dsh-fv-width �
 function setExpanded(on) {
 	expanded = on;
 	if (dock !== null) dock.classList.toggle("dsh-wk-collapsed", !on);
+	if (scrim !== null) scrim.classList.toggle("dsh-wk-scrim-visible", on);
 }
 
 function setOpenHook(fn) {
@@ -73,6 +74,20 @@ function ensureDock() {
 	bodyEl.className = "dsh-wk-body";
 	showHint();
 
+	// —— 左侧遮罩：预览展开时阻断背后聊天内容，点击遮罩收起 ——
+	scrim = document.createElement("div");
+	scrim.id = "dsh-wk-scrim";
+	scrim.setAttribute("aria-hidden", "true");
+	// 遮罩阻断背后内容；点击收起，但不产生移动端 tap/按压反馈。
+	scrim.addEventListener("pointerdown", function (e) {
+		e.stopPropagation();
+	});
+	scrim.addEventListener("click", function (e) {
+		e.preventDefault();
+		e.stopPropagation();
+		setExpanded(false);
+	});
+
 	// —— 右缘竖排把手：停靠栏收起时可见，点击展开（主动打开入口） ——
 	//    面板为空（首次/未预览过）→ 交给 openHook 进入工作区浏览模式
 	handle = document.createElement("div");
@@ -106,6 +121,7 @@ function ensureDock() {
 	dock.appendChild(headEl);
 	dock.appendChild(crumbsEl);
 	dock.appendChild(bodyEl);
+	document.body.appendChild(scrim);
 	document.body.appendChild(dock);
 	document.body.appendChild(handle);
 	document.body.appendChild(sideOpen);
