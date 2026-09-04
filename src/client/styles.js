@@ -101,7 +101,17 @@ function ensureStyles() {
 		"body[data-ds-dark-theme] .dsh-wk-ln{background:#161b22;color:#8b949e}",
 		"body[data-ds-dark-theme] .hl-cm{color:#8b949e}body[data-ds-dark-theme] .hl-st{color:#a5d6ff}body[data-ds-dark-theme] .hl-key{color:#7ee787}body[data-ds-dark-theme] .hl-kw{color:#ff7b72}body[data-ds-dark-theme] .hl-nu{color:#79c0ff}body[data-ds-dark-theme] .hl-fn{color:#d2a8ff}",
 		"body[data-ds-dark-theme] .dsh-wk-row:hover{background:rgba(56,139,253,.15)}",
-		"body[data-ds-dark-theme] .dsh-wk-ico{color:#e3b341}"
+		"body[data-ds-dark-theme] .dsh-wk-ico{color:#e3b341}",
+		// ---- PWA 顶区下拉刷新指示器（v2.3.0）：浮在状态栏下方居中的小圆盘。
+		//      平时藏在顶外（translateY(-46px)+opacity 0）；松手回弹才挂过渡类
+		//      ——拖拽中 JS 每帧直写 transform，挂了过渡会拖影 ----
+		"#dsh-wk-ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:2147481999;width:38px;height:38px;margin-left:-19px;border-radius:50%;background:rgba(255,255,255,.94);box-shadow:0 2px 12px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(-46px);pointer-events:none}",
+		"#dsh-wk-ptr svg{width:20px;height:20px;stroke:#0969da}",
+		"#dsh-wk-ptr.dsh-wk-ptr-back{transition:transform .22s ease,opacity .22s ease}",
+		"#dsh-wk-ptr.dsh-wk-ptr-spin svg{animation:dsh-wk-ptr-rot .8s linear infinite}",
+		"@keyframes dsh-wk-ptr-rot{to{transform:rotate(360deg)}}",
+		"body[data-ds-dark-theme] #dsh-wk-ptr{background:rgba(33,38,45,.96);box-shadow:0 2px 12px rgba(0,0,0,.5)}",
+		"body[data-ds-dark-theme] #dsh-wk-ptr svg{stroke:#58a6ff}"
 	].join("\n");
 	document.head.appendChild(styleTag);
 }
