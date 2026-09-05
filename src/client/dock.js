@@ -101,8 +101,8 @@ function ensureDock() {
 	//    面板为空（首次/未预览过）→ 交给 openHook 进入工作区浏览模式
 	handle = document.createElement("div");
 	handle.id = "dsh-wk-handle";
-	handle.textContent = "预览";
-	handle.title = "展开文件预览";
+	handle.textContent = "文件";
+	handle.title = "展开文件面板";
 	handle.addEventListener("click", function () {
 		setExpanded(true);
 		if (openHook !== null && !hasContent) openHook();
@@ -161,7 +161,7 @@ function showHint() {
 	bodyEl.textContent = "";
 	var hint = document.createElement("div");
 	hint.className = "dsh-wk-hint";
-	hint.textContent = "点击聊天消息里的文件路径，即可在此预览\n或点右侧「预览」把手浏览工作区文件";
+	hint.textContent = "点击聊天消息里的文件路径，即可在此预览\n或点右侧「文件」把手浏览工作区文件";
 	bodyEl.appendChild(hint);
 }
 

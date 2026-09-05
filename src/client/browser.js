@@ -1,6 +1,6 @@
 // 浏览器半部 · 预览面板的数据加载与渲染（双入口共用）
 //   入口 A：点聊天里的文件路径 → tryView → render（精确直达）
-//   入口 B：点「预览 ›」把手 → openBrowse（从工作区根开始逛，P0）
+//   入口 B：点「文件」把手 → openBrowse（从工作区根开始逛，P0）
 // 位置记忆：localStorage 记住上次浏览路径，重开面板回到原处（失败回退根列表）。
 const { ensureDock, setExpanded, headEl, bodyEl, crumbsEl } = require("./dock.js");
 const { fmtSize, basename, parentPath } = require("./util.js");
