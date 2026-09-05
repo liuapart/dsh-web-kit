@@ -46,13 +46,15 @@ function ensureDock() {
 	dock.id = "dsh-wk-dock";
 	dock.className = "dsh-wk-collapsed";
 
-	// —— 左缘拖拽调宽：320~760px，pointerup 落盘 localStorage ——
+	// —— 左缘拖拽调宽：320px ~ max(760, 60vw)，pointerup 落盘 localStorage ——
+	//    上限随视口走（v2.3.1 与 clamp 默认一致地放大 PC 可用宽度）
 	var resize = document.createElement("div");
 	resize.className = "dsh-wk-resize";
-	resize.title = "拖拽调宽";
+	resize.title = "拖拽调宽；双击恢复自适应宽度";
 	var dragWidth = function (e) {
 		if (e.buttons !== 1) return;
-		var w = Math.min(Math.max(window.innerWidth - e.clientX, 320), 760);
+		var maxW = Math.max(760, Math.round(window.innerWidth * 0.6));
+		var w = Math.min(Math.max(window.innerWidth - e.clientX, 320), maxW);
 		dock.style.width = w + "px";
 	};
 	var saveWidth = function () {
@@ -63,6 +65,11 @@ function ensureDock() {
 		document.addEventListener("pointermove", dragWidth);
 	});
 	document.addEventListener("pointerup", saveWidth);
+	// 双击热区：清除持久宽度 → 回到 CSS 自适应默认（clamp 随视口伸缩）
+	resize.addEventListener("dblclick", function () {
+		try { localStorage.removeItem(WIDTH_KEY); } catch (e) { }
+		dock.style.width = "";
+	});
 
 	headEl = document.createElement("div");
 	headEl.className = "dsh-wk-head";
@@ -127,10 +134,10 @@ function ensureDock() {
 	document.body.appendChild(dock);
 	document.body.appendChild(handle);
 	document.body.appendChild(sideOpen);
-	// 恢复上次拖拽宽度（限三位数 px，防脏数据）
+	// 恢复上次拖拽宽度（限 3~4 位 px：老上限 760 与新 60vw 都可能四位数，防脏数据）
 	try {
 		var w = localStorage.getItem(WIDTH_KEY);
-		if (w !== null && /^\d{3}px$/.test(w)) dock.style.width = w;
+		if (w !== null && /^\d{3,4}px$/.test(w)) dock.style.width = w;
 	} catch (e) { }
 	document.addEventListener("keydown", onKey);
 	document.addEventListener("pointerdown", onOutside);

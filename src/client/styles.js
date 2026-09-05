@@ -19,7 +19,9 @@ function ensureStyles() {
 		"#dsh-wk-scrim{position:fixed;inset:0;z-index:2147481998;background:rgba(0,0,0,.16);opacity:0;pointer-events:none;transition:opacity .18s ease;outline:none;-webkit-tap-highlight-color:transparent}",
 		"#dsh-wk-scrim.dsh-wk-scrim-visible{opacity:1;pointer-events:auto;cursor:pointer}",
 		// ---- 停靠栏主体：右侧全高，收起 = 平移出屏（保留内容与宽度） ----
-		"#dsh-wk-dock{position:fixed;top:0;right:0;bottom:0;width:460px;max-width:70vw;z-index:2147482000;display:flex;flex-direction:column;background:#ffffff;color:#1f2328;border-left:1px solid #d8dee4;box-shadow:-8px 0 28px rgba(0,0,0,.10);font-family:-apple-system,'SF Pro Text','PingFang SC','Microsoft YaHei',sans-serif;transition:transform .18s ease}",
+		// 默认宽度随视口伸缩（v2.3.1：PC 固定 460px 看不齐全代码）：1024 视口
+		// 起 460 下限，1920 屏 ≈922，1320 封顶；max-width:70vw 继续兜底窄屏 ----
+		"#dsh-wk-dock{position:fixed;top:0;right:0;bottom:0;width:clamp(460px,48vw,1320px);max-width:70vw;z-index:2147482000;display:flex;flex-direction:column;background:#ffffff;color:#1f2328;border-left:1px solid #d8dee4;box-shadow:-8px 0 28px rgba(0,0,0,.10);font-family:-apple-system,'SF Pro Text','PingFang SC','Microsoft YaHei',sans-serif;transition:transform .18s ease}",
 		"#dsh-wk-dock.dsh-wk-collapsed{transform:translateX(100%)}",
 		// ---- 右缘展开把手：停靠栏展开时自动淡出（兄弟选择器，无需 JS 状态） ----
 		//    2026-08-31 两轮收窄：高(内边距14→8/字号12→11/字距2→1/文案「预览 ›」)
