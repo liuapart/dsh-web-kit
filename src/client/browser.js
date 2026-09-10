@@ -8,6 +8,37 @@ const { tokenize, langOf } = require("./highlight.js");
 
 var LAST_KEY = "dsh-wk-lastpath"; // 上次浏览位置持久化
 var cachedRoots = null;           // 工作区根缓存（面包屑首段 = 工作区名，VS Code 惯例）
+var imgCache = new Map();         // 预览小图会话级缓存 path -> {dataUrl,width,height}
+var IMG_CACHE_MAX = 8;            // 缓存上限（FIFO 淘汰）；目录来回切换瞬时显示
+
+/** 扩展名粗判：目录列表决定某行是否可做小图预览（真假由服务端魔数最终裁决）。 */
+function isImgName(name) {
+	return /\.(png|jpe?g|gif|webp|bmp|ico|svg)$/i.test(name);
+}
+
+/** 取图片 dataUrl（带缓存）；顺路解码拿分辨率，供预览脚注显示。 */
+function fetchImageDataUrl(p) {
+	var hit = imgCache.get(p);
+	if (hit) return Promise.resolve(hit);
+	return fetch("/web-kit?path=" + encodeURIComponent(p), { headers: { accept: "application/json" } })
+		.then(function (res) { return res.ok ? res.json() : null; })
+		.then(function (d) {
+			if (d === null || typeof d !== "object" || d.ok !== true || d.kind !== "image" || typeof d.dataUrl !== "string") {
+				throw new Error("not-image");
+			}
+			return new Promise(function (resolve, reject) {
+				var im = new Image();
+				im.onload = function () {
+					var out = { dataUrl: d.dataUrl, width: im.naturalWidth, height: im.naturalHeight };
+					if (imgCache.size >= IMG_CACHE_MAX) imgCache.delete(imgCache.keys().next().value);
+					imgCache.set(p, out);
+					resolve(out);
+				};
+				im.onerror = function () { reject(new Error("decode-failed")); };
+				im.src = d.dataUrl;
+			});
+		});
+}
 
 /** 拉取并缓存工作区根（apply 时预热；openRoots 时刷新）。失败 → 空数组不阻塞。 */
 function ensureRoots() {
@@ -225,6 +256,9 @@ function render(path, data) {
 		return;
 	}
 	// —— 目录 / 工作区根：行点击下钻或选工作区（面包屑已在上方固定层） ——
+	// v2.5 含图片的目录改为「选中即预览」：单击图片行 = 选中 + 底部小图预览；
+	// 再击同一行 / 双击（两次 click）/ Enter = 进详情；目录与非图片文件保持原行为。
+	// 无图片的目录不创建预览区（不占空间）；↑↓ 移动选中行，预览随之刷新。
 	var list = document.createElement("div");
 	list.className = "dsh-wk-list";
 	if (data.entries.length === 0) {
@@ -233,13 +267,67 @@ function render(path, data) {
 		empty.textContent = isRoots ? "没有可用的工作区（先在 dsh 里创建/打开一个）" : "空目录（.git / node_modules / .DS_Store 已隐藏）";
 		list.appendChild(empty);
 	}
+	var rowEls = [];   // 与 data.entries 一一对应（键盘导航用）
+	var selIdx = -1;   // 当前选中行下标（-1 = 未选中）
+	var hasImgs = !isRoots;
+	for (var hi = 0; hasImgs && hi < data.entries.length; hi++) {
+		if (data.entries[hi].type === "file" && isImgName(data.entries[hi].name)) break;
+	}
+	hasImgs = !isRoots && hi < data.entries.length;
+	// 预览面板：小图（点它 = 进详情）+ 脚注提示/元信息
+	var prevwrap = null, previmg = null, prevmeta = null;
+	if (hasImgs) {
+		prevwrap = document.createElement("div");
+		prevwrap.className = "dsh-wk-prevwrap";
+		prevwrap.style.display = "none"; // v2.5.1：选中图片前不占空间，选中后才出现
+		previmg = document.createElement("img");
+		previmg.className = "dsh-wk-previmg";
+		previmg.alt = "";
+		previmg.title = "点击进详情";
+		previmg.addEventListener("click", function () {
+			if (selIdx >= 0) openEntry(data.entries[selIdx]);
+		});
+		prevmeta = document.createElement("div");
+		prevmeta.className = "dsh-wk-prevmeta";
+		prevmeta.textContent = "单击行预览 · 再击/Enter 进详情 · ↑↓ 切换";
+		prevwrap.appendChild(previmg);
+		prevwrap.appendChild(prevmeta);
+	}
+	function openEntry(entry) {
+		loadPath(isRoots ? entry.path : path + "/" + entry.name).catch(function () { });
+	}
+	function selectRow(i) {
+		if (i < 0 || i >= rowEls.length) return;
+		if (selIdx >= 0 && rowEls[selIdx]) rowEls[selIdx].classList.remove("dsh-wk-rowsel");
+		selIdx = i;
+		rowEls[i].classList.add("dsh-wk-rowsel");
+		rowEls[i].scrollIntoView({ block: "nearest" });
+		var entry = data.entries[i];
+		if (entry.type !== "file" || !isImgName(entry.name)) {
+			prevwrap.style.display = "none"; // 选到非图片行：预览区收起（v2.5.1）
+			return;
+		}
+		var target = path + "/" + entry.name;
+		prevwrap.style.display = "";
+		prevmeta.textContent = "加载中…";
+		previmg.removeAttribute("src");
+		fetchImageDataUrl(target).then(function (hit) {
+			if (selIdx < 0 || data.entries[selIdx] !== entry) return; // 快速换行：丢弃迟到的旧图
+			previmg.src = hit.dataUrl;
+			prevmeta.textContent = entry.name + " · " + hit.width + "×" + hit.height;
+		}).catch(function () {
+			prevmeta.textContent = "无法预览（点击行进详情看原文件）";
+		});
+	}
 	for (var idx = 0; idx < data.entries.length; idx++) {
-		(function (entry) {
+		(function (entry, i) {
 			var row = document.createElement("div");
+			var imgRow = !isRoots && entry.type === "file" && isImgName(entry.name);
 			row.className = "dsh-wk-row" + (entry.type === "dir" ? " dsh-wk-rowdir" : "");
 			var icon = document.createElement("span");
 			icon.className = "dsh-wk-ico";
-			icon.textContent = entry.type === "dir" ? "▸" : "▫";
+			// ▣ 标记可预览图片行，与普通文件 ▫ 区分
+			icon.textContent = entry.type === "dir" ? "▸" : (imgRow ? "▣" : "▫");
 			var name = document.createElement("span");
 			name.className = "dsh-wk-name";
 			name.textContent = entry.name + (entry.type === "dir" ? "/" : "");
@@ -249,14 +337,41 @@ function render(path, data) {
 			row.appendChild(icon);
 			row.appendChild(name);
 			row.appendChild(size);
+			if (imgRow) row.title = "单击预览 · 再击/Enter 进详情";
 			row.addEventListener("click", function () {
-				var target = isRoots ? entry.path : path + "/" + entry.name;
-				loadPath(target).catch(function () { });
+				if (!imgRow) { openEntry(entry); return; }
+				if (selIdx === i) { openEntry(entry); return; } // 再击同一行 → 进详情
+				selectRow(i);
 			});
+			rowEls.push(row);
 			list.appendChild(row);
-		})(data.entries[idx]);
+		})(data.entries[idx], idx);
 	}
-	body.appendChild(list);
+	if (prevwrap !== null) {
+		// 目录态两段布局：列表区滚动 + 底部常驻预览区（body 自身不再滚动）
+		var listwrap = document.createElement("div");
+		listwrap.className = "dsh-wk-listwrap";
+		listwrap.tabIndex = 0; // 可聚焦：↑↓/Enter 键盘导航
+		listwrap.appendChild(list);
+		listwrap.addEventListener("keydown", function (ev) {
+			var delta = ev.key === "ArrowDown" ? 1 : (ev.key === "ArrowUp" ? -1 : 0);
+			if (delta !== 0) {
+				ev.preventDefault();
+				selectRow(selIdx < 0 ? (delta > 0 ? 0 : rowEls.length - 1)
+					: Math.min(rowEls.length - 1, Math.max(0, selIdx + delta)));
+			} else if (ev.key === "Enter" && selIdx >= 0) {
+				ev.preventDefault();
+				openEntry(data.entries[selIdx]);
+			}
+		});
+		var dirwrap = document.createElement("div");
+		dirwrap.className = "dsh-wk-dirwrap";
+		dirwrap.appendChild(listwrap);
+		dirwrap.appendChild(prevwrap);
+		body.appendChild(dirwrap);
+	} else {
+		body.appendChild(list);
+	}
 }
 
 /**

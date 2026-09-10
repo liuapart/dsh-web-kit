@@ -1,7 +1,7 @@
 {
   "name": "@apanoo/dsh-web-kit",
   "description": "Web UI enhancement kit for dsh: in-page file preview dock with syntax highlighting and image preview, small-screen sidebar management, compact Session log button, and PWA top-zone pull-to-refresh",
-  "version": "2.4.0",
+  "version": "2.5.1",
   "type": "module",
   "main": "lib/index.js",
   "scripts": {

@@ -104,6 +104,16 @@ function ensureStyles() {
 		"body[data-ds-dark-theme] .hl-cm{color:#8b949e}body[data-ds-dark-theme] .hl-st{color:#a5d6ff}body[data-ds-dark-theme] .hl-key{color:#7ee787}body[data-ds-dark-theme] .hl-kw{color:#ff7b72}body[data-ds-dark-theme] .hl-nu{color:#79c0ff}body[data-ds-dark-theme] .hl-fn{color:#d2a8ff}",
 		"body[data-ds-dark-theme] .dsh-wk-row:hover{background:rgba(56,139,253,.15)}",
 		"body[data-ds-dark-theme] .dsh-wk-ico{color:#e3b341}",
+		// ---- 目录图片「选中即预览」（v2.5）：列表区滚动 + 底部常驻小图预览 ----
+		".dsh-wk-dirwrap{height:100%;display:flex;flex-direction:column;min-height:0}",
+		".dsh-wk-listwrap{flex:1;min-height:0;overflow:auto;outline:none}",
+		".dsh-wk-rowsel{background:rgba(9,105,218,.14);box-shadow:inset 2px 0 0 #0969da}",
+		".dsh-wk-prevwrap{flex:none;height:260px;border-top:1px solid #d8dee4;display:flex;flex-direction:column;min-height:0;background-color:#fbfbfc;background-image:conic-gradient(#e9ecef 25%,transparent 0 50%,#e9ecef 0 75%,transparent 0);background-size:16px 16px}",
+		".dsh-wk-previmg{flex:1;min-height:0;width:100%;object-fit:contain;cursor:pointer;padding:8px;box-sizing:border-box}",
+		".dsh-wk-prevmeta{flex:none;padding:4px 10px;font-size:11px;color:#57606a;text-align:center;background:rgba(255,255,255,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
+		"body[data-ds-dark-theme] .dsh-wk-rowsel{background:rgba(56,139,253,.22);box-shadow:inset 2px 0 0 #58a6ff}",
+		"body[data-ds-dark-theme] .dsh-wk-prevwrap{background-color:#161b22;background-image:conic-gradient(#21262d 25%,transparent 0 50%,#21262d 0 75%,transparent 0)}",
+		"body[data-ds-dark-theme] .dsh-wk-prevmeta{color:#8b949e;background:rgba(22,27,34,.72)}",
 		// ---- 图片预览（v2.4）：棋盘格衬底 + 适应窗口；点击切换 1:1 原始尺寸（容器滚动） ----
 		".dsh-wk-imgwrap{height:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow:auto;padding:16px;background-color:#fbfbfc;background-image:conic-gradient(#e9ecef 25%,transparent 0 50%,#e9ecef 0 75%,transparent 0);background-size:16px 16px}",
 		".dsh-wk-img{max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in;border-radius:4px;box-shadow:0 2px 14px rgba(0,0,0,.18);background:#fff}",
