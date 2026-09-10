@@ -104,6 +104,11 @@ function ensureStyles() {
 		"body[data-ds-dark-theme] .hl-cm{color:#8b949e}body[data-ds-dark-theme] .hl-st{color:#a5d6ff}body[data-ds-dark-theme] .hl-key{color:#7ee787}body[data-ds-dark-theme] .hl-kw{color:#ff7b72}body[data-ds-dark-theme] .hl-nu{color:#79c0ff}body[data-ds-dark-theme] .hl-fn{color:#d2a8ff}",
 		"body[data-ds-dark-theme] .dsh-wk-row:hover{background:rgba(56,139,253,.15)}",
 		"body[data-ds-dark-theme] .dsh-wk-ico{color:#e3b341}",
+		// ---- 图片预览（v2.4）：棋盘格衬底 + 适应窗口；点击切换 1:1 原始尺寸（容器滚动） ----
+		".dsh-wk-imgwrap{height:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow:auto;padding:16px;background-color:#fbfbfc;background-image:conic-gradient(#e9ecef 25%,transparent 0 50%,#e9ecef 0 75%,transparent 0);background-size:16px 16px}",
+		".dsh-wk-img{max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in;border-radius:4px;box-shadow:0 2px 14px rgba(0,0,0,.18);background:#fff}",
+		".dsh-wk-img.dsh-wk-imgfull{max-width:none;max-height:none;cursor:zoom-out}",
+		"body[data-ds-dark-theme] .dsh-wk-imgwrap{background-color:#161b22;background-image:conic-gradient(#21262d 25%,transparent 0 50%,#21262d 0 75%,transparent 0)}",
 		// ---- PWA 顶区下拉刷新指示器（v2.3.0）：浮在状态栏下方居中的小圆盘。
 		//      平时藏在顶外（translateY(-46px)+opacity 0）；松手回弹才挂过渡类
 		//      ——拖拽中 JS 每帧直写 transform，挂了过渡会拖影 ----

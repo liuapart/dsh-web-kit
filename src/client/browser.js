@@ -34,7 +34,7 @@ async function loadPath(path) {
 	if (!res.ok) throw new Error("HTTP " + res.status);
 	var data = await res.json();
 	if (data === null || typeof data !== "object" || data.ok !== true) throw new Error("bad payload");
-	if (data.kind !== "file" && data.kind !== "dir") throw new Error("bad kind");
+	if (data.kind !== "file" && data.kind !== "dir" && data.kind !== "image") throw new Error("bad kind");
 	saveLast(data.path || path);
 	render(path, data);
 }
@@ -177,6 +177,29 @@ function render(path, data) {
 		crumbs.appendChild(bar);
 		bar.scrollLeft = bar.scrollWidth; // 锚定末尾：当前文件恒可见（不用手动往右翻）
 	}
+	if (!isRoots && data.kind === "image") {
+		// —— 图片（v2.4）：棋盘格衬底适应窗口；点击在适应/1:1 原始尺寸间切换；
+		//    切原始尺寸时容器出滚动条；加载完成后元信息补充分辨率 ——
+		meta.textContent = fmtSize(data.size) + " · " + (data.mime || "image");
+		var imgwrap = document.createElement("div");
+		imgwrap.className = "dsh-wk-imgwrap";
+		var img = document.createElement("img");
+		img.className = "dsh-wk-img";
+		img.src = data.dataUrl;
+		img.alt = basename(path);
+		img.addEventListener("click", function () {
+			var full = img.className.indexOf("dsh-wk-imgfull") >= 0;
+			img.className = full ? "dsh-wk-img" : "dsh-wk-img dsh-wk-imgfull";
+			if (!full) imgwrap.scrollLeft = 0; // 回适应态时把滚动归零，避免停在角落
+			else imgwrap.scrollTop = 0;
+		});
+		img.addEventListener("load", function () {
+			meta.textContent += " · " + img.naturalWidth + "×" + img.naturalHeight;
+		});
+		imgwrap.appendChild(img);
+		body.appendChild(imgwrap);
+		return;
+	}
 	if (!isRoots && data.kind === "file") {
 		// —— 文件：双栏行号（ln 列 sticky 钉左）+ 代码列；同字体同行高行行对齐 ——
 		var lines = data.content.split("\n");
@@ -251,8 +274,9 @@ async function tryView(path) {
 		var data = await res.json();
 		if (data === null || typeof data !== "object" || data.ok !== true) return false;
 		if (data.kind === "file" && typeof data.content !== "string") return false;
+		if (data.kind === "image" && typeof data.dataUrl !== "string") return false;
 		if (data.kind === "dir" && !Array.isArray(data.entries)) return false;
-		if (data.kind !== "file" && data.kind !== "dir") return false;
+		if (data.kind !== "file" && data.kind !== "dir" && data.kind !== "image") return false;
 		saveLast(data.path || path);
 		render(path, data);
 		return true;
