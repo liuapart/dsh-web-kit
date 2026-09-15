@@ -1,6 +1,6 @@
 // 浏览器半部 · 样式注入（一次性）
-// v2.6.0：随文件预览功能下线，只保留三块样式——小屏侧栏管理（贴边把手 +
-// 官方细条/轨道回收）、Session log 窄屏紧凑、PWA 下拉刷新指示器。
+// v2.6.0：随文件预览功能下线，只保留小屏侧栏管理与 PWA 下拉刷新指示器。
+// v2.6.1：Session log 窄屏紧凑样式移除（官方页面已改版）。
 // 深色主题用 body[data-ds-dark-theme] 属性选择器：优先级高于官方
 // prefers-color-scheme 规则，不依赖 <style> 书写顺序（曾因层叠顺序翻车）
 var styleTag = null;
@@ -14,11 +14,6 @@ function ensureStyles() {
 		"#dsh-wk-side-open{user-select:none;-webkit-user-select:none}",
 		// ---- 移动端按钮：禁止 tap 高亮/系统触摸呼出 ----
 		"#dsh-wk-side-open{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;outline:none}",
-		// ---- Session log 按钮 · 窄屏紧凑（v2.2.0 自安卓壳迁入）：≤620px 只留下载图标并收缩钉右。
-		//      官方按钮列宽由父布局分配且自带 min-width:111px，藏文字不会缩，需覆盖盒子；
-		//      媒体查询驱动，转屏/拉宽自适应；无新增颜色，双主题天然适配 ----
-		"@media (max-width:620px){.dsh-wk-slog{width:auto!important;min-width:0!important;flex:0 0 auto!important;padding:6px 12px!important;margin-left:auto!important}}",
-		"@media (max-width:620px){.dsh-wk-slog span{display:none!important}}",
 		// ---- 小屏侧栏贴边把手：12×64 细条，平时半透明，悬停显形 ----
 		"#dsh-wk-side-open{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:2147481997;width:12px;height:64px;border:none;border-radius:0 8px 8px 0;background:rgba(128,140,160,.26);color:#e8eaf0;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:12px;opacity:.4;transition:opacity .15s;padding:0}",
 		"@media (hover:hover){#dsh-wk-side-open:hover{opacity:1;background:rgba(58,66,82,.85)}}",
