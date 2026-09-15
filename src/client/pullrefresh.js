@@ -17,7 +17,7 @@ var ARM = 12;        // 武装位移：纵向超过才算"开始下拉"（过滤
 var TRIGGER = 58;    // 松手触发阈值（指示器位移）
 var MAX = 96;        // 拖拽位移上限
 var DAMP = 0.45;     // 阻尼：手指位移 → 指示器位移
-var EXCLUDE = "#dsh-wk-dock,#dsh-wk-scrim,#dsh-wk-handle,#dsh-wk-side-open,input,textarea,[contenteditable=\"true\"],[contenteditable=\"\"]";
+var EXCLUDE = "#dsh-wk-side-open,input,textarea,[contenteditable=\"true\"],[contenteditable=\"\"]";
 var ind = null;
 var dist = 0;
 
